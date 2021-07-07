@@ -9,5 +9,5 @@ Hash Table은 대부분의 프로그램에서 매우 중요하게 사용되는 �
 Contents
 ========
 * [How to choose a good Hash Function?](https://github.com/minseok127/Hash-Simulator/wiki/How-to-choose-a-good-Hash-Function%3F)
-* How to make a Hash Function?
-* Hash Simulator
+* [How to make a Hash Function?](https://github.com/minseok127/Hash-Simulator/wiki/How-to-make-a-Hash-Function%3F)
+* [Hash Simulator](https://github.com/minseok127/Hash-Simulator/wiki/Hash-Simulator)
