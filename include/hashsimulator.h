@@ -14,10 +14,12 @@ typedef struct hashcode128
     uint32_t h4;
 } uint128_t;
 
+typedef unsigned char uchar;
+
 class HashSimulator
 {
 public:
-    HashSimulator(HID* HIDList, int HIDCount, int bincount, uint32_t seed);
+    HashSimulator(HID* HIDList, int HIDCount, int binCount, uint32_t seed);
     void AddKey(void* keyptr, int length); // Add key to the key set
 
     void Test(); // Start the test, print results
@@ -28,19 +30,21 @@ private:
 
     uint32_t seed;
 
-    void** keyset = 0; // Array of key pointers
-    int keycount = 0; // The number of keys
+    void** keySet = 0; // Array of key pointers
+    int keyCount = 0; // The number of keys
     int capacity = 0; // Capcity of keyset
-    int* lengthset = 0; // Array of key's length
+    int* lengthSet = 0; // Array of key's length
 
 #if HASH_CODE_SIZE == 32
-    uint32_t* hashcodeSet = 0; // Array of hash code
+    uint32_t* outputSet = 0; // Array of hash code
 #elif HASH_CODE_SIZE == 128
-    uint128_t* hashcodeSet = 0; // Array of hash code, 4 uint32_t is one hash code
+    uint128_t* outputSet = 0; // Array of hash code, 4 uint32_t is one hash code
 #endif
 
+    int flipCount[HASH_CODE_SIZE]; // Used in Avalanche test
+
     int* bins = 0; // bins
-    int bincount = 0; // The number of bins
+    int binCount = 0; // The number of bins
 
     // Test
     void HashingStart(HID hid); // Hash the keys
