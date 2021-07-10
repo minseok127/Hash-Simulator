@@ -1,0 +1,6 @@
+#ifndef HASHCODESIZE_H
+#define HASHCODESIZE_H
+
+#define HASH_CODE_SIZE (32)
+
+#endif // HASHCODESIZE_H
