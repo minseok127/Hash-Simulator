@@ -8,7 +8,6 @@
  * At first, register hash functions, indexing methods, and names
  * then push the keys and start the test */
 
-
 using namespace std;
 
 ///////////////////////////////////////////////////////////////////////////
@@ -206,9 +205,6 @@ void HashSimulator::HashingStart(HID hid)
 // Get the p-value and print it
 void HashSimulator::ChiSquaredTest(HID hid)
 {
-    // p-value
-    double pValue = 0;
-
     // Expected bin
     double expectedPerBin = (double)this->keyCount / this->binCount;
 
@@ -224,9 +220,8 @@ void HashSimulator::ChiSquaredTest(HID hid)
         chiValue += diff * diff / expectedPerBin; // sum of (real - expected)^2 / expected
     }
 
-    // Get the p-value with "keycount" Degree of freedom
-
-    cout << "p-value is " << pValue << endl << endl;
+    cout << "Chi-squared value : " << chiValue << endl;
+    cout << "DOF : " << this->binCount << endl << endl;
 }
 
 // Avalanche test
@@ -349,9 +344,16 @@ void HashSimulator::FillFactorTest(HID hid)
 void HashSimulator::HashingFinish(HID hid)
 {
     // Empty the bins
+    cout << "bins" << endl;
     for (int i = 0; i < this->binCount; i++) {
+        cout << "bin" << i << " : " << this->bins[i] << " (expected : " << (double)this->keyCount / this->binCount << ") " << endl;
         this->bins[i] = 0;
     }
+    cout << endl;
+
+    // Delete output set
+    delete[] this->outputSet;
+    this->outputSet = 0;
 
     cout << HashNameList[hid] << "'s test is over..." << endl << endl;
 }
