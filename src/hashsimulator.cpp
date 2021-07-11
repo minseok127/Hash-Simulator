@@ -2,8 +2,7 @@
 #include <chrono>
 #include <iostream>
 
-#include "hashsimulator.h"
-
+#include "../include/hashsimulator.h"
 
 /* Test Hash Functions with Chi-squared test, Avalanche test, FillFactor test
  * At first, register hash functions, indexing methods, and names

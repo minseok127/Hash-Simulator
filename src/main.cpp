@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "hashsimulator.h"
+#include "../include/hashsimulator.h"
 
 using namespace std;
 

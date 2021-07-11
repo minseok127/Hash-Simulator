@@ -1,4 +1,4 @@
-#include "types.h"
+#include "../include/types.h"
 
 int DivIndexing(int bincount, void* out)
 {
