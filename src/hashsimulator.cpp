@@ -20,6 +20,7 @@ extern void CustomHash_32(const void* key, int len, uint32_t seed, void* out);
 
 // Indexing Methods
 extern int DivIndexing(int bincount, void* out);
+extern int ChooseMbit(int bincount, void* out);
 
 // Hash Function pointer list
 // Index is same with HID
@@ -277,8 +278,8 @@ void HashSimulator::AvalancheTest(HID hid)
         keyFrame = malloc(this->lengthSet[i]);
         memcpy(keyFrame, this->keySet[i], this->lengthSet[i]);
 
-        // Flip the key's all bits, 0 to length
-        for (int j = 0; j < this->lengthSet[i]; j++) {
+        // Flip the key's bit
+        for (int j = 0; j < this->lengthSet[i] * 8; j++) {
             // Flip jth bit
             Flip((uint8_t*)keyFrame, j);
 
