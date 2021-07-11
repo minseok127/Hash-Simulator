@@ -1,6 +1,6 @@
 #include <assert.h>
+#include <chrono>
 #include <iostream>
-#include <math.h>
 
 #include "hashsimulator.h"
 
@@ -18,6 +18,7 @@ using namespace std;
 
 // Hash Functions
 extern void MurmurHash3_x86_32(const void* key, int len, uint32_t seed, void* out);
+extern void CustomHash_32(const void* key, int len, uint32_t seed, void* out);
 
 // Indexing Methods
 extern int DivIndexing(int bincount, void* out);
@@ -27,6 +28,7 @@ extern int DivIndexing(int bincount, void* out);
 static void (*HashList[])(const void* key, int len, uint32_t seed, void* out) =
 {
     MurmurHash3_x86_32,     // [HID_MURMUR3]
+    CustomHash_32,          // [HID_CUSTOM]
 };
 
 // Hash Function's name list
@@ -34,6 +36,7 @@ static void (*HashList[])(const void* key, int len, uint32_t seed, void* out) =
 static const char* HashNameList[] =
 {
     "MurmurHash3",          // [HID_MURMUR3]
+    "Custom",               // [HID_CUSTOM]
 };
 
 // Indexing method list
@@ -41,6 +44,7 @@ static const char* HashNameList[] =
 static int (*IndexingList[])(int bincount, void* out) =
 {
     DivIndexing,            // [HID_MURMUR3]
+    DivIndexing,            // [HID_CUSTOM]
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -109,7 +113,7 @@ void HashSimulator::AddKey(void *keyptr, int length)
         int* tmplen = new int[this->capacity];
 
         // Copy the original
-        for (int i = 0; i < this->capacity; i++) {
+        for (int i = 0; i < this->keyCount; i++) {
             tmp[i] = this->keySet[i];
             tmplen[i] = this->lengthSet[i];
         }
@@ -159,7 +163,7 @@ void HashSimulator::HashingStart(HID hid)
     int index = -1;
 
     // speed
-    double hashingTime = 0;
+    chrono::nanoseconds nano;
 
     // Make hash code array
 #if HASH_CODE_SIZE == 32
@@ -174,7 +178,7 @@ void HashSimulator::HashingStart(HID hid)
     cout << HashNameList[hid] << "'s hashing is started..." << endl;
 
     // Speed check
-    // 스피드체크해야함
+    chrono::system_clock::time_point start = chrono::system_clock::now();
     for (int i = 0; i < this->keyCount; i++) {
         // Get the hash code
         HashList[hid](this->keySet[i], this->lengthSet[i], this->seed, &out);
@@ -190,10 +194,13 @@ void HashSimulator::HashingStart(HID hid)
         // Increase bin
         this->bins[index]++;
     }
+    chrono::system_clock::time_point end = chrono::system_clock::now();
+
+    nano = end - start;
 
     cout << HashNameList[hid] << "'s hashing is over" << endl;
     cout << "Size of key set : " << this->keyCount << endl;
-    cout << "Speed : " << hashingTime << endl << endl;
+    cout << "Speed : " << nano.count() << "(ns)" << endl << endl;
 }
 
 // Chi-squared test
