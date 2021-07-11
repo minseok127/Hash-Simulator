@@ -5,6 +5,5 @@
 typedef int HID;
 
 #define HID_MURMUR3     (0)
-#define HID_CUSTOM      (1)
 
 #endif // HASHLIST_H

@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <iostream>
 #include <math.h>
 
@@ -16,35 +17,30 @@ using namespace std;
 ///////////////////////////////////////////////////////////////////////////
 
 // Hash Functions
-extern void CustomHash(const void* key, int len, uint32_t seed, void* out);
-extern void MurmurHash3(const void* key, int len, uint32_t seed, void* out);
+extern void MurmurHash3_x86_32(const void* key, int len, uint32_t seed, void* out);
 
 // Indexing Methods
 extern int DivIndexing(int bincount, void* out);
-extern int BitIndexing(int bincount, void* out);
 
 // Hash Function pointer list
 // Index is same with HID
 static void (*HashList[])(const void* key, int len, uint32_t seed, void* out) =
 {
-    MurmurHash3,
-    CustomHash,
+    MurmurHash3_x86_32,     // [HID_MURMUR3]
 };
 
 // Hash Function's name list
 // Index is same with HID
 static const char* HashNameList[] =
 {
-    "MurmurHash3",
-    "CustomHash",
+    "MurmurHash3",          // [HID_MURMUR3]
 };
 
 // Indexing method list
 // Index is same with HID
 static int (*IndexingList[])(int bincount, void* out) =
 {
-    BitIndexing,
-    BitIndexing,
+    DivIndexing,            // [HID_MURMUR3]
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -59,34 +55,51 @@ static int (*IndexingList[])(int bincount, void* out) =
 // HashSimulator's initializer
 HashSimulator::HashSimulator(HID* HIDList, int HIDCount, int binCount, uint32_t seed)
 {
-    // Initialize
+    // Get the hash id list
     this->HIDList = HIDList;
     this->HIDCount = HIDCount;
+
+    // make bins
     this->bins = new int[binCount];
     this->binCount = binCount;
-    this->seed = seed;
 
+    // Empty bins
     for (int i = 0; i < binCount; i++) {
         this->bins[i] = 0;
     }
 
+    // Get seed for hashing
+    this->seed = seed;
+
+    // Make key set, length set
+    // first capacity is 1
+    this->keySet = new void*[this->capacity];
+    this->lengthSet = new int[this->capacity];
+
+    // Set flip count array for avalanche test
     for (int i = 0; i < HASH_CODE_SIZE; i++) {
         this->flipCount[i] = 0;
     }
 
     // Show the progress
     for (int i = 0; i < HIDCount; i++) {
-        int hIndex = HIDList[i];
-
-        cout << HashNameList[hIndex] <<" is ready..." << endl;
+        cout << HashNameList[HIDList[i]] <<" is ready..." << endl;
     }
     cout << endl;
+}
+
+// Destroyer
+HashSimulator::~HashSimulator()
+{
+    delete[] this->bins;
+    delete[] this->keySet;
+    delete[] this->lengthSet;
 }
 
 // Add the key's pointer to the simulator
 void HashSimulator::AddKey(void *keyptr, int length)
 {
-    // If capacity of keyset is insufficient, increase it
+    // If capacity of keyset is insufficient, increase it(doubled)
     if (this->capacity == this->keyCount) {
         // Increase capacity
         this->capacity *= 2;
@@ -95,14 +108,14 @@ void HashSimulator::AddKey(void *keyptr, int length)
         void** tmp = new void*[this->capacity];
         int* tmplen = new int[this->capacity];
 
-        // Copy the keyset
+        // Copy the original
         for (int i = 0; i < this->capacity; i++) {
             tmp[i] = this->keySet[i];
             tmplen[i] = this->lengthSet[i];
         }
 
         // delete original arrays
-        if (keySet) {
+        if (this->keySet) {
             delete[] this->keySet;
             delete[] this->lengthSet;
         }
@@ -124,26 +137,24 @@ void HashSimulator::AddKey(void *keyptr, int length)
 // Do the test, print the results
 void HashSimulator::Test()
 {
-    // Test start
+    // For all hashes
     for (int i = 0; i < this->HIDCount; i++) {
         // Fill the bins
-        HashingStart(this->HIDList[i]);
+        this->HashingStart(this->HIDList[i]);
 
-        ChiSquaredTest(this->HIDList[i]);
-        AvalancheTest(this->HIDList[i]);
-        FillFactorTest(this->HIDList[i]);
+        // Test start
+        this->ChiSquaredTest(this->HIDList[i]);
+        this->AvalancheTest(this->HIDList[i]);
+        this->FillFactorTest(this->HIDList[i]);
 
-        // Initialize the bins
-        HashingFinish(this->HIDList[i]);
+        // Destroy the bins
+        this->HashingFinish(this->HIDList[i]);
     }
 }
 
 // Fill the bins
 void HashSimulator::HashingStart(HID hid)
 {
-    // Hash code
-    void* out = 0;
-
     // Index number
     int index = -1;
 
@@ -153,8 +164,10 @@ void HashSimulator::HashingStart(HID hid)
     // Make hash code array
 #if HASH_CODE_SIZE == 32
     this->outputSet = new uint32_t[this->keyCount];
+    uint32_t out = 0;
 #elif HASH_CODE_SIZE == 128
     this->outputSet = new uint128_t[this->keyCount];
+    uint128_t out = 0;
 #endif
 
     // Show the progress
@@ -164,27 +177,22 @@ void HashSimulator::HashingStart(HID hid)
     // 스피드체크해야함
     for (int i = 0; i < this->keyCount; i++) {
         // Get the hash code
-        HashList[hid](this->keySet[i], this->lengthSet[i], this->seed, out);
-
-        if (out == 0) {
-            continue;
-        }
+        HashList[hid](this->keySet[i], this->lengthSet[i], this->seed, &out);
+        assert(out != 0);
 
         // Push the result
-#if HASH_CODE_SIZE == 32
-        this->outputSet[i] = *(uint32_t*)(out);
-#elif HASH_CODE_SIZE == 128
-        this->outputSet[i] = *(uint128_t*)(out);
-#endif
+        this->outputSet[i] = out;
 
         // Get the index
-        index = IndexingList[hid](this->binCount, out);
+        index = IndexingList[hid](this->binCount, &out);
+        assert(this->binCount - 1 >= index);
 
         // Increase bin
         this->bins[index]++;
     }
 
     cout << HashNameList[hid] << "'s hashing is over" << endl;
+    cout << "Size of key set : " << this->keyCount << endl;
     cout << "Speed : " << hashingTime << endl << endl;
 }
 
@@ -221,21 +229,31 @@ void HashSimulator::ChiSquaredTest(HID hid)
 // pick a key, change the bit from 0 to the last
 // Check the flipped bit of output hash code with xor
 
-static uchar flipTable[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
-inline __attribute__ ((always_inline)) void Flip(uchar* target, int n)
+static uint8_t flipTable[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+inline __attribute__ ((always_inline)) void Flip(uint8_t* target, int n)
 {
-    *(target + n / 8) ^= flipTable[n % 8]; // Assume target is pointing 0, 0 1 2 ... like big-endian
+    // target variable is pointing a byte
+    // Assume bit array's index is increased from left to the right
+    // 0 1 2 3 4 5 6 7 8 <= 1 byte, target is pointing 0bit
+    // n / 8 is location of target byte
+    // n % 8 is index of flipped bit
+    *(target + n / 8) ^= flipTable[n % 8];
 }
 
-inline __attribute__ ((always_inline)) bool IsBitSet(uchar* target, int n)
+inline __attribute__ ((always_inline)) bool IsBitSet(uint8_t* target, int n)
 {
-    return *(target + n / 8) & flipTable[n % 8]; // Assume target is pointing 0, 0 1 2 ... like big-endian
+    // target variable is pointing a byte
+    // Assume bit array's index is increased from left to the right
+    // 0 1 2 3 4 5 6 7 8 <= 1 byte, target is pointing 0bit
+    // n / 8 is location of target byte
+    // n % 8 is index of checked bit
+    return *(target + n / 8) & flipTable[n % 8];
 }
 
 void HashSimulator::AvalancheTest(HID hid)
 {
-    int count = 0;
-    void* key = 0;
+    int count = 0; // total flip count
+    void* keyFrame = 0;
 
 #if HASH_CODE_SIZE == 32
     uint32_t originalOutput;
@@ -255,16 +273,16 @@ void HashSimulator::AvalancheTest(HID hid)
         originalOutput = this->outputSet[i];
 
         // Copy original key
-        key = malloc(this->lengthSet[i]);
-        memcpy(key, this->keySet[i], this->lengthSet[i]);
+        keyFrame = malloc(this->lengthSet[i]);
+        memcpy(keyFrame, this->keySet[i], this->lengthSet[i]);
 
         // Flip the key's all bits, 0 to length
         for (int j = 0; j < this->lengthSet[i]; j++) {
             // Flip jth bit
-            Flip((uchar*)key, j);
+            Flip((uint8_t*)keyFrame, j);
 
             // Get the new hash code
-            HashList[hid](key, this->lengthSet[i], this->seed, &newOutput);
+            HashList[hid](keyFrame, this->lengthSet[i], this->seed, &newOutput);
 
             // (original) xor (new)
             // to check changed bit
@@ -273,26 +291,33 @@ void HashSimulator::AvalancheTest(HID hid)
 
             // Check the changed bit
             for (int k = 0; k < HASH_CODE_SIZE; k++) {
-                if (IsBitSet((uchar*)&checkCode, k)) { // Is kth bit is 1?
+                if (IsBitSet((uint8_t*)&checkCode, k)) { // Is kth bit is 1?
                     this->flipCount[k]++; // this bit is changed, increase flip count
                 }
             }
 
             // Flip back
-            Flip((uchar*)key, j);
+            Flip((uint8_t*)keyFrame, j);
             count++; // total flipped count
         }
 
         // free copied key
-        free(key);
+        free(keyFrame);
     }
 
-    // Print the possiblity of each bits
+    // Print the possibility of each bits
+    double avg = 0; // average possibility
+    double p = 0;
     for (int i = 0; i < HASH_CODE_SIZE; i++) {
-        cout << "bit" << HASH_CODE_SIZE - (i + 1) << " : " << (double)this->flipCount[i] / count << endl;
-    }
+        // possibility
+        p = (double)this->flipCount[i] / count;
 
-    cout << "Avalanche test is over" << endl << endl;
+        cout << "bit" << HASH_CODE_SIZE - (i + 1) << " : " << p << endl;
+
+        avg += p;
+    }
+    avg /= HASH_CODE_SIZE;
+    cout << "Average : " << avg << endl << endl;
 }
 
 // FillFactor test
@@ -310,7 +335,7 @@ void HashSimulator::FillFactorTest(HID hid)
     }
     f = (double)(this->keyCount * this->keyCount) / b; // kk / nrr
 
-    cout << "FillFactor is " << f << endl << endl;
+    cout << 100 * (1 - f / this->binCount) << "% is wasted..." << endl << endl;
 }
 
 // Hashing is over

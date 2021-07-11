@@ -1,25 +1,16 @@
 #ifndef HASHSIMULATOR_H
 #define HASHSIMULATOR_H
 
-#include <stdint.h>
-
 #include "hashlist.h"
 #include "hashcodesize.h"
-
-typedef struct hashcode128
-{
-    uint32_t h1;
-    uint32_t h2;
-    uint32_t h3;
-    uint32_t h4;
-} uint128_t;
-
-typedef unsigned char uchar;
+#include "types.h"
 
 class HashSimulator
 {
 public:
     HashSimulator(HID* HIDList, int HIDCount, int binCount, uint32_t seed);
+    ~HashSimulator();
+
     void AddKey(void* keyptr, int length); // Add key to the key set
 
     void Test(); // Start the test, print results
@@ -31,9 +22,9 @@ private:
     uint32_t seed;
 
     void** keySet = 0; // Array of key pointers
-    int keyCount = 0; // The number of keys
-    int capacity = 0; // Capcity of keyset
     int* lengthSet = 0; // Array of key's length
+    int keyCount = 0; // The number of keys
+    int capacity = 1; // Capcity of keyset
 
 #if HASH_CODE_SIZE == 32
     uint32_t* outputSet = 0; // Array of hash code
