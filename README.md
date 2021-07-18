@@ -1,6 +1,6 @@
 Hash Simulator
 ==============
-Hash Table은 대부분의 프로그램에서 매우 중요하게 사용되는 자료구조 중 하나입니다.   
+Hash Table은 많은 프로그램에서 매우 중요하게 사용되는 자료구조 중 하나입니다.   
    
 그리고 Hash Function은 Hash Table의 성능을 결정짓는 중요한 요인으로 생각할 수 있습니다.      
    
