@@ -10,4 +10,4 @@ Contents
 ========
 * [How to choose a good Hash Function?](https://github.com/minseok127/Hash-Simulator/wiki/How-to-choose-a-good-Hash-Function%3F)
 * [How to make a Hash Function?](https://github.com/minseok127/Hash-Simulator/wiki/How-to-make-a-Hash-Function%3F)
-* [Hash Simulator](https://github.com/minseok127/Hash-Simulator/wiki/Hash-Simulator)
+* [Hash Simulator](https://github.com/minseok127/Hash-Simulator/wiki/Hash-Simulator)   
