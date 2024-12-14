@@ -1,6 +1,7 @@
+**This repository was created during my undergraduate studies and serves as a personal reference for my own use.**
+
 Hash Simulator
 ==============
-**This repository was created during my undergraduate studies and serves as a personal reference for my own use.**
 
 Hash Table은 많은 프로그램에서 매우 중요하게 사용되는 자료구조 중 하나입니다.
 
