@@ -1,4 +1,4 @@
-**This repository was created during my undergraduate studies and serves as a personal reference for my own use.**
+**This repository is a summary of the hash function chapter of The Art of Computer Programming that I read when I was an undergraduate. The purpose of this is to remind myself.**
 
 Hash Simulator
 ==============
