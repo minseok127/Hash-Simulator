@@ -1,4 +1,4 @@
-**This repository is a summary of the hash function chapter of The Art of Computer Programming that I read when I was an undergraduate. It also includes my efforts to understand and analyze the characteristics of hash functions in my own way. The purpose of this repository is to remind myself.**
+**This repository is a summary of the hash function chapter of The Art of Computer Programming that I read when I was an undergraduate. It also includes my efforts to understand and analyze the characteristics of hash functions in my own way.**
 
 Hash Simulator
 ==============
